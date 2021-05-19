@@ -41,9 +41,6 @@
     <ApplicationIcon>SekiroRandomizer.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SekiroRandomizer">
-      <HintPath>H:\SteamLibrary\steamapps\common\Sekiro\randomizer\SekiroRandomizer.exe</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />

@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7492E9A7-E656-4C41-B5D2-18033CCE479D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SekiroRandomizer.Hook</RootNamespace>
-    <AssemblyName>SekiroRandomizer.Hook</AssemblyName>
+    <RootNamespace>SekiroRandomizer.Patch</RootNamespace>
+    <AssemblyName>SekiroRandomizer.Patch</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -37,6 +37,9 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>SekiroRandomizer.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="SekiroRandomizer">
       <HintPath>H:\SteamLibrary\steamapps\common\Sekiro\randomizer\SekiroRandomizer.exe</HintPath>
@@ -57,6 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SekiroRandomizer.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

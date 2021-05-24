@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Mono.Cecil;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -17,13 +19,31 @@ namespace SekiroRandomizer.Patch
         [STAThread]
         static void Main(string[] args)
         {
-            var assembly = Assembly.LoadFrom("SekiroRandomizer.exe");
-            var tProgram = assembly.GetType("SekiroRandomizer.Program");
-            var mMain = tProgram.GetMethod("Main", BindingFlags.NonPublic | BindingFlags.Static);
 
+            byte[] bytes;
+            using (var ad = AssemblyDefinition.ReadAssembly("SekiroRandomizer.exe"))
+            {
+                foreach (var task in typeof(InjectTasks).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
+                {
+                    if (!task.GetCustomAttributes<InjectTargetAttribute>().Any()) continue;
+                    task.Invoke(null, new object[] { ad });
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    ad.Write(stream);
+                    bytes = stream.ToArray();
+                }
+            }
+
+            Control.CheckForIllegalCrossThreadCalls = false;
+            var assembly = Assembly.Load(bytes.ToArray());
             LocalizeSekiroForm(assembly);
+            assembly.EntryPoint.Invoke(null, new object[] { args });
+            //var tProgram = assembly.GetType("SekiroRandomizer.Program");
+            //var mMain = tProgram.GetMethod("Main", BindingFlags.NonPublic | BindingFlags.Static);
 
-            mMain.Invoke(null, new object[] { args });
+            //mMain.Invoke(null, new object[] { args });
         }
 
         private static async void LocalizeSekiroForm(Assembly assembly)
@@ -198,10 +218,14 @@ namespace SekiroRandomizer.Patch
                 edittext.Text = "更新游戏内的文本（重命名BOSS和添加提示）";
                 var openstart = form.Controls["openstart"];
                 openstart.Text = "打开种鬼佛堂通往仙峰寺的门";
-                var label8 = form.Controls["label8"];
-                label8.Text = "固定种子";
-                var label2 = form.Controls["label2"];
-                label2.Text = "敌人种子";
+                var label8 = form.Controls["label8"] as Label;
+                label8.TextAlign = ContentAlignment.MiddleRight;
+                label8.Location = new Point(480, 711);
+                label8.Text = "固定种子：";
+                var label2 = form.Controls["label2"] as Label;
+                label2.TextAlign = ContentAlignment.MiddleRight;
+                label2.Location = new Point(480, 683);
+                label2.Text = "敌人种子：";
                 var defaultReroll = form.Controls["defaultReroll"];
                 defaultReroll.Text = "新的种子";
                 var defaultRerollEnemy = form.Controls["defaultRerollEnemy"];
@@ -209,7 +233,39 @@ namespace SekiroRandomizer.Patch
 
                 var randomize = form.Controls["randomize"];
                 randomize.Text = "开始新的随机";
+
+                var statusL = (form.Controls["statusStrip1"] as StatusStrip).Items["statusL"] as ToolStripStatusLabel;
+                statusL.TextChanged += (sender, e) => Localize_statusL(sender as ToolStripStatusLabel);
+                Localize_statusL(statusL);
             }));
+        }
+
+        private static void Localize_statusL(ToolStripStatusLabel statusL)
+        {
+            var spans = Regex.Split(statusL.Text, @"[\.!]\s+");
+            for (int i = 0; i < spans.Length; i++)
+            {
+                switch (spans[i])
+                {
+                    case "Created by thefifthmatt":
+                        spans[i] = "制作：thefifthmatt";
+                        break;
+                    case "Art by Souv":
+                        spans[i] = "美术：Souv";
+                        break;
+                    case "Happy Birthday Sekiro":
+                        spans[i] = "祝贺只狼诞辰！";
+                        break;
+                    default:
+                        if (spans[i].StartsWith("Current config hash: "))
+                            spans[i] = "当前配置散表：" + spans[i].Substring(20);
+                        else return;
+                        break;
+                }
+            }
+            List<string> list = new List<string>(spans);
+            list.Insert(2, "汉化：sanmuru");
+            statusL.Text = string.Join(" | ", list);
         }
 
         private static void Localize_difficultyL(Label difficultyL)
